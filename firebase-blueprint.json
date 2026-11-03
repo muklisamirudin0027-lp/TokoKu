@@ -1,0 +1,636 @@
+{
+  "entities": {
+    "AdminRecord": {
+      "title": "AdminRecord",
+      "description": "Trusted administrator lookup document for PosyMart Owner.",
+      "type": "object",
+      "properties": {
+        "ownerUid": {
+          "type": "string",
+          "description": "Firebase Auth UID of the administrator.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "email": {
+          "type": "string",
+          "description": "Verified email address of the administrator.",
+          "minLength": 3,
+          "maxLength": 160
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when admin record was created."
+        }
+      },
+      "required": ["ownerUid", "email", "createdAt"]
+    },
+    "StoreProfile": {
+      "title": "StoreProfile",
+      "description": "Store identity, thermal receipt configuration, and Google Drive/Sheets linkage.",
+      "type": "object",
+      "properties": {
+        "ownerUid": {
+          "type": "string",
+          "description": "Firebase Auth UID of the store owner.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "storeName": {
+          "type": "string",
+          "description": "Primary brand name of the store.",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "storeSubName": {
+          "type": "string",
+          "description": "Client store sub-name shown on receipts and sidebar.",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "tagline": {
+          "type": "string",
+          "description": "Business tagline printed on thermal receipts and reports.",
+          "minLength": 0,
+          "maxLength": 250
+        },
+        "whatsappNumber": {
+          "type": "string",
+          "description": "Store WhatsApp contact number.",
+          "minLength": 0,
+          "maxLength": 40
+        },
+        "receiptFooter": {
+          "type": "string",
+          "description": "Thermal receipt footer message.",
+          "minLength": 0,
+          "maxLength": 500
+        },
+        "driveFolderName": {
+          "type": "string",
+          "description": "Target Google Drive folder name for product photos.",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "autoUploadPhotosToDrive": {
+          "type": "boolean",
+          "description": "Whether new product photos automatically upload to Google Drive."
+        },
+        "driveFolderId": {
+          "type": "string",
+          "description": "Optional Google Drive folder ID.",
+          "minLength": 0,
+          "maxLength": 128
+        },
+        "connectedSpreadsheetId": {
+          "type": "string",
+          "description": "Optional Google Sheets spreadsheet ID.",
+          "minLength": 0,
+          "maxLength": 128
+        },
+        "connectedSpreadsheetUrl": {
+          "type": "string",
+          "description": "Optional Google Sheets URL.",
+          "minLength": 0,
+          "maxLength": 500
+        },
+        "connectedSpreadsheetTitle": {
+          "type": "string",
+          "description": "Optional Google Sheets title.",
+          "minLength": 0,
+          "maxLength": 200
+        },
+        "lastSheetSyncAt": {
+          "type": "string",
+          "description": "ISO timestamp of last Google Sheets sync.",
+          "minLength": 0,
+          "maxLength": 64
+        },
+        "customCategories": {
+          "type": "array",
+          "description": "Custom product categories configured by the store."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server update timestamp."
+        }
+      },
+      "required": [
+        "ownerUid",
+        "storeName",
+        "storeSubName",
+        "tagline",
+        "whatsappNumber",
+        "receiptFooter",
+        "driveFolderName",
+        "autoUploadPhotosToDrive",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "CatalogProduct": {
+      "title": "CatalogProduct",
+      "description": "Product catalog item with multi-branch stock counts and compressed photo.",
+      "type": "object",
+      "properties": {
+        "ownerUid": {
+          "type": "string",
+          "description": "Firebase Auth UID of the store owner.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "name": {
+          "type": "string",
+          "description": "Product display name.",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "category": {
+          "type": "string",
+          "description": "Product category (default or custom).",
+          "minLength": 1,
+          "maxLength": 48
+        },
+        "sku": {
+          "type": "string",
+          "description": "Stock Keeping Unit code.",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "barcode": {
+          "type": "string",
+          "description": "EAN-13 or internal barcode string.",
+          "minLength": 0,
+          "maxLength": 64
+        },
+        "costPrice": {
+          "type": "number",
+          "description": "HPP cost price in Rupiah."
+        },
+        "sellingPrice": {
+          "type": "number",
+          "description": "Selling price in Rupiah."
+        },
+        "stockSolo": {
+          "type": "number",
+          "description": "Stock count at Cabang Utama Pasar Klewer Solo."
+        },
+        "stockYogya": {
+          "type": "number",
+          "description": "Stock count at Cabang 2 Malioboro Yogyakarta."
+        },
+        "stockSurabaya": {
+          "type": "number",
+          "description": "Stock count at Cabang 3 Ampel Niaga Surabaya."
+        },
+        "minStockAlert": {
+          "type": "number",
+          "description": "Minimum stock alert threshold."
+        },
+        "unit": {
+          "type": "string",
+          "description": "Measurement unit (pcs, meter, roll, lembar).",
+          "minLength": 1,
+          "maxLength": 24
+        },
+        "image": {
+          "type": "string",
+          "description": "Compressed image data URI or illustration.",
+          "minLength": 0,
+          "maxLength": 350000
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server update timestamp."
+        }
+      },
+      "required": [
+        "ownerUid",
+        "name",
+        "category",
+        "sku",
+        "costPrice",
+        "sellingPrice",
+        "stockSolo",
+        "stockYogya",
+        "stockSurabaya",
+        "minStockAlert",
+        "unit",
+        "image",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "PosTransaction": {
+      "title": "PosTransaction",
+      "description": "Completed or voided POS cashier transaction record.",
+      "type": "object",
+      "properties": {
+        "ownerUid": {
+          "type": "string",
+          "description": "Firebase Auth UID of the store owner.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "invoiceNumber": {
+          "type": "string",
+          "description": "Unique invoice code.",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "txTimestamp": {
+          "type": "string",
+          "description": "ISO timestamp of the transaction.",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "branchId": {
+          "type": "string",
+          "description": "Branch ID where the transaction occurred.",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "staffId": {
+          "type": "string",
+          "description": "Cashier/Staff ID.",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "staffName": {
+          "type": "string",
+          "description": "Cashier/Staff name.",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "customerName": {
+          "type": "string",
+          "description": "Customer name.",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "customerPhone": {
+          "type": "string",
+          "description": "Optional customer phone number.",
+          "minLength": 0,
+          "maxLength": 40
+        },
+        "itemsSummary": {
+          "type": "string",
+          "description": "Compact summary of items purchased.",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "itemCount": {
+          "type": "number",
+          "description": "Total quantity of items sold."
+        },
+        "subtotal": {
+          "type": "number",
+          "description": "Subtotal in Rupiah."
+        },
+        "discountAmount": {
+          "type": "number",
+          "description": "Discount amount in Rupiah."
+        },
+        "taxAmount": {
+          "type": "number",
+          "description": "Tax amount in Rupiah."
+        },
+        "totalAmount": {
+          "type": "number",
+          "description": "Total amount paid in Rupiah."
+        },
+        "totalCost": {
+          "type": "number",
+          "description": "Total HPP cost in Rupiah."
+        },
+        "grossProfit": {
+          "type": "number",
+          "description": "Gross profit in Rupiah."
+        },
+        "paymentMethod": {
+          "type": "string",
+          "description": "Payment method.",
+          "enum": ["tunai", "qris", "transfer", "kartu", "tempo"],
+          "minLength": 1,
+          "maxLength": 24
+        },
+        "amountPaid": {
+          "type": "number",
+          "description": "Amount tendered in Rupiah."
+        },
+        "changeAmount": {
+          "type": "number",
+          "description": "Change returned in Rupiah."
+        },
+        "status": {
+          "type": "string",
+          "description": "Transaction status (selesai or dibatalkan).",
+          "enum": ["selesai", "dibatalkan"],
+          "minLength": 1,
+          "maxLength": 24
+        },
+        "note": {
+          "type": "string",
+          "description": "Optional transaction note.",
+          "minLength": 0,
+          "maxLength": 500
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server update timestamp."
+        }
+      },
+      "required": [
+        "ownerUid",
+        "invoiceNumber",
+        "txTimestamp",
+        "branchId",
+        "staffId",
+        "staffName",
+        "customerName",
+        "itemsSummary",
+        "itemCount",
+        "subtotal",
+        "discountAmount",
+        "taxAmount",
+        "totalAmount",
+        "totalCost",
+        "grossProfit",
+        "paymentMethod",
+        "amountPaid",
+        "changeAmount",
+        "status",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "OperationalExpense": {
+      "title": "OperationalExpense",
+      "description": "Daily or monthly operational expense record.",
+      "type": "object",
+      "properties": {
+        "ownerUid": {
+          "type": "string",
+          "description": "Firebase Auth UID of the store owner.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "branchId": {
+          "type": "string",
+          "description": "Branch ID.",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "category": {
+          "type": "string",
+          "description": "Expense category.",
+          "enum": ["gaji", "sewa", "listrik_air", "operasional", "packing", "promosi", "lainnya"],
+          "minLength": 1,
+          "maxLength": 32
+        },
+        "title": {
+          "type": "string",
+          "description": "Expense title / purpose.",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "amount": {
+          "type": "number",
+          "description": "Expense nominal amount in Rupiah."
+        },
+        "expenseDate": {
+          "type": "string",
+          "description": "YYYY-MM-DD date of expense.",
+          "minLength": 10,
+          "maxLength": 10
+        },
+        "note": {
+          "type": "string",
+          "description": "Optional note.",
+          "minLength": 0,
+          "maxLength": 500
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server update timestamp."
+        }
+      },
+      "required": [
+        "ownerUid",
+        "branchId",
+        "category",
+        "title",
+        "amount",
+        "expenseDate",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "StoreBranch": {
+      "title": "StoreBranch",
+      "description": "Synchronized store branch location record.",
+      "type": "object",
+      "properties": {
+        "ownerUid": {
+          "type": "string",
+          "description": "Firebase Auth UID of the store owner.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "name": {
+          "type": "string",
+          "description": "Branch display name.",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "code": {
+          "type": "string",
+          "description": "Branch invoice code.",
+          "minLength": 1,
+          "maxLength": 40
+        },
+        "address": {
+          "type": "string",
+          "description": "Branch address.",
+          "minLength": 1,
+          "maxLength": 300
+        },
+        "phone": {
+          "type": "string",
+          "description": "Branch contact phone.",
+          "minLength": 1,
+          "maxLength": 40
+        },
+        "isMain": {
+          "type": "boolean",
+          "description": "Whether this is the main hub branch."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server update timestamp."
+        }
+      },
+      "required": [
+        "ownerUid",
+        "name",
+        "code",
+        "address",
+        "phone",
+        "isMain",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "StoreStaff": {
+      "title": "StoreStaff",
+      "description": "Synchronized store staff / cashier account record.",
+      "type": "object",
+      "properties": {
+        "ownerUid": {
+          "type": "string",
+          "description": "Firebase Auth UID of the store owner.",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "name": {
+          "type": "string",
+          "description": "Staff full name.",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "role": {
+          "type": "string",
+          "description": "Staff role.",
+          "enum": ["Owner", "Manager", "Supervisor", "Kasir"],
+          "minLength": 1,
+          "maxLength": 24
+        },
+        "branchId": {
+          "type": "string",
+          "description": "Assigned branch ID.",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "email": {
+          "type": "string",
+          "description": "Staff email or username.",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "phone": {
+          "type": "string",
+          "description": "Staff phone number.",
+          "minLength": 1,
+          "maxLength": 40
+        },
+        "active": {
+          "type": "boolean",
+          "description": "Whether the staff shift is active."
+        },
+        "pin": {
+          "type": "string",
+          "description": "Numeric login PIN (4 to 8 digits).",
+          "minLength": 4,
+          "maxLength": 8,
+          "pattern": "^[0-9]{4,8}$"
+        },
+        "avatarUrl": {
+          "type": "string",
+          "description": "Optional SVG or image avatar.",
+          "minLength": 0,
+          "maxLength": 50000
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server creation timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server update timestamp."
+        }
+      },
+      "required": [
+        "ownerUid",
+        "name",
+        "role",
+        "branchId",
+        "email",
+        "phone",
+        "active",
+        "pin",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/admins/{adminId}": {
+      "schema": { "$ref": "#/entities/AdminRecord" },
+      "description": "Trusted administrator lookup collection."
+    },
+    "/store_profiles/{storeId}": {
+      "schema": { "$ref": "#/entities/StoreProfile" },
+      "description": "Store profile settings and Google Workspace configuration."
+    },
+    "/catalog_products/{productId}": {
+      "schema": { "$ref": "#/entities/CatalogProduct" },
+      "description": "Synchronized product catalog and multi-branch inventory."
+    },
+    "/pos_transactions/{transactionId}": {
+      "schema": { "$ref": "#/entities/PosTransaction" },
+      "description": "Synchronized POS cashier transactions across branches."
+    },
+    "/operational_expenses/{expenseId}": {
+      "schema": { "$ref": "#/entities/OperationalExpense" },
+      "description": "Synchronized daily and monthly operational expenses."
+    },
+    "/store_branches/{branchId}": {
+      "schema": { "$ref": "#/entities/StoreBranch" },
+      "description": "Synchronized store branches."
+    },
+    "/store_staff/{staffId}": {
+      "schema": { "$ref": "#/entities/StoreStaff" },
+      "description": "Synchronized store staff and cashier accounts."
+    }
+  }
+}

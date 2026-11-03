@@ -1,0 +1,493 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 1. Global Safety Net (Default-Deny Catch-All)
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // 2. Hardened Global Primitives
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null && request.auth.token.email_verified == true;
+    }
+
+    function isBootstrappedAdmin() {
+      return isSignedIn() && request.auth.token.email == 'muklisamirudin0027@gmail.com';
+    }
+
+    function isAdmin() {
+      return isBootstrappedAdmin() || (isSignedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid)));
+    }
+
+    // 3. Validation Blueprints (Anti-Update-Gap)
+    function isValidAdminRecord(data) {
+      return data.keys().hasAll(['ownerUid', 'email', 'createdAt']) &&
+        data.keys().hasOnly(['ownerUid', 'email', 'createdAt']) &&
+        data.ownerUid is string && data.ownerUid.size() >= 1 && data.ownerUid.size() <= 128 && data.ownerUid.matches('^[a-zA-Z0-9_\\-]+$') &&
+        data.ownerUid == request.auth.uid &&
+        data.email is string && data.email.size() >= 3 && data.email.size() <= 160 &&
+        data.createdAt is timestamp;
+    }
+
+    function isValidStoreProfile(data) {
+      return data.keys().hasAll([
+          'ownerUid',
+          'storeName',
+          'storeSubName',
+          'tagline',
+          'whatsappNumber',
+          'receiptFooter',
+          'driveFolderName',
+          'autoUploadPhotosToDrive',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'ownerUid',
+          'storeName',
+          'storeSubName',
+          'tagline',
+          'whatsappNumber',
+          'receiptFooter',
+          'driveFolderName',
+          'autoUploadPhotosToDrive',
+          'driveFolderId',
+          'connectedSpreadsheetId',
+          'connectedSpreadsheetUrl',
+          'connectedSpreadsheetTitle',
+          'lastSheetSyncAt',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        data.ownerUid is string && data.ownerUid.size() >= 1 && data.ownerUid.size() <= 128 && data.ownerUid.matches('^[a-zA-Z0-9_\\-]+$') &&
+        data.ownerUid == request.auth.uid &&
+        data.storeName is string && data.storeName.size() >= 1 && data.storeName.size() <= 120 &&
+        data.storeSubName is string && data.storeSubName.size() >= 1 && data.storeSubName.size() <= 120 &&
+        data.tagline is string && data.tagline.size() <= 250 &&
+        data.whatsappNumber is string && data.whatsappNumber.size() <= 40 &&
+        data.receiptFooter is string && data.receiptFooter.size() <= 500 &&
+        data.driveFolderName is string && data.driveFolderName.size() >= 1 && data.driveFolderName.size() <= 120 &&
+        data.autoUploadPhotosToDrive is bool &&
+        (!('driveFolderId' in data) || (data.driveFolderId is string && data.driveFolderId.size() <= 128)) &&
+        (!('connectedSpreadsheetId' in data) || (data.connectedSpreadsheetId is string && data.connectedSpreadsheetId.size() <= 128)) &&
+        (!('connectedSpreadsheetUrl' in data) || (data.connectedSpreadsheetUrl is string && data.connectedSpreadsheetUrl.size() <= 500)) &&
+        (!('connectedSpreadsheetTitle' in data) || (data.connectedSpreadsheetTitle is string && data.connectedSpreadsheetTitle.size() <= 200)) &&
+        (!('lastSheetSyncAt' in data) || (data.lastSheetSyncAt is string && data.lastSheetSyncAt.size() <= 64)) &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp &&
+        data.updatedAt == request.time;
+    }
+
+    function isValidCatalogProduct(data) {
+      return data.keys().hasAll([
+          'ownerUid',
+          'name',
+          'category',
+          'sku',
+          'costPrice',
+          'sellingPrice',
+          'stockSolo',
+          'stockYogya',
+          'stockSurabaya',
+          'minStockAlert',
+          'unit',
+          'image',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'ownerUid',
+          'name',
+          'category',
+          'sku',
+          'barcode',
+          'costPrice',
+          'sellingPrice',
+          'stockSolo',
+          'stockYogya',
+          'stockSurabaya',
+          'minStockAlert',
+          'unit',
+          'image',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        data.ownerUid is string && data.ownerUid.size() >= 1 && data.ownerUid.size() <= 128 && data.ownerUid.matches('^[a-zA-Z0-9_\\-]+$') &&
+        data.ownerUid == request.auth.uid &&
+        data.name is string && data.name.size() >= 1 && data.name.size() <= 160 &&
+        data.category is string && data.category.size() >= 1 && data.category.size() <= 32 &&
+        data.category in ['songkok', 'korden', 'karpet', 'sajadah', 'sarung', 'aksesoris'] &&
+        data.sku is string && data.sku.size() >= 1 && data.sku.size() <= 64 &&
+        (!('barcode' in data) || (data.barcode is string && data.barcode.size() <= 64)) &&
+        data.costPrice is number && data.costPrice >= 0 &&
+        data.sellingPrice is number && data.sellingPrice >= 0 &&
+        data.stockSolo is number && data.stockSolo >= 0 &&
+        data.stockYogya is number && data.stockYogya >= 0 &&
+        data.stockSurabaya is number && data.stockSurabaya >= 0 &&
+        data.minStockAlert is number && data.minStockAlert >= 0 &&
+        data.unit is string && data.unit.size() >= 1 && data.unit.size() <= 24 &&
+        data.image is string && data.image.size() <= 350000 &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp &&
+        data.updatedAt == request.time;
+    }
+
+    function isValidPosTransaction(data) {
+      return data.keys().hasAll([
+          'ownerUid',
+          'invoiceNumber',
+          'txTimestamp',
+          'branchId',
+          'staffId',
+          'staffName',
+          'customerName',
+          'itemsSummary',
+          'itemCount',
+          'subtotal',
+          'discountAmount',
+          'taxAmount',
+          'totalAmount',
+          'totalCost',
+          'grossProfit',
+          'paymentMethod',
+          'amountPaid',
+          'changeAmount',
+          'status',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'ownerUid',
+          'invoiceNumber',
+          'txTimestamp',
+          'branchId',
+          'staffId',
+          'staffName',
+          'customerName',
+          'customerPhone',
+          'itemsSummary',
+          'itemCount',
+          'subtotal',
+          'discountAmount',
+          'taxAmount',
+          'totalAmount',
+          'totalCost',
+          'grossProfit',
+          'paymentMethod',
+          'amountPaid',
+          'changeAmount',
+          'status',
+          'note',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        data.ownerUid is string && data.ownerUid.size() >= 1 && data.ownerUid.size() <= 128 && data.ownerUid.matches('^[a-zA-Z0-9_\\-]+$') &&
+        data.ownerUid == request.auth.uid &&
+        data.invoiceNumber is string && data.invoiceNumber.size() >= 1 && data.invoiceNumber.size() <= 80 &&
+        data.txTimestamp is string && data.txTimestamp.size() >= 1 && data.txTimestamp.size() <= 64 &&
+        data.branchId is string && data.branchId.size() >= 1 && data.branchId.size() <= 64 &&
+        data.staffId is string && data.staffId.size() >= 1 && data.staffId.size() <= 64 &&
+        data.staffName is string && data.staffName.size() >= 1 && data.staffName.size() <= 120 &&
+        data.customerName is string && data.customerName.size() >= 1 && data.customerName.size() <= 120 &&
+        (!('customerPhone' in data) || (data.customerPhone is string && data.customerPhone.size() <= 40)) &&
+        data.itemsSummary is string && data.itemsSummary.size() >= 1 && data.itemsSummary.size() <= 2000 &&
+        data.itemCount is number && data.itemCount >= 1 &&
+        data.subtotal is number && data.subtotal >= 0 &&
+        data.discountAmount is number && data.discountAmount >= 0 &&
+        data.taxAmount is number && data.taxAmount >= 0 &&
+        data.totalAmount is number && data.totalAmount >= 0 &&
+        data.totalCost is number && data.totalCost >= 0 &&
+        data.grossProfit is number &&
+        data.paymentMethod is string && data.paymentMethod.size() >= 1 && data.paymentMethod.size() <= 24 &&
+        data.paymentMethod in ['tunai', 'qris', 'transfer', 'kartu', 'tempo'] &&
+        data.amountPaid is number && data.amountPaid >= 0 &&
+        data.changeAmount is number && data.changeAmount >= 0 &&
+        data.status is string && data.status.size() >= 1 && data.status.size() <= 24 &&
+        data.status in ['selesai', 'dibatalkan'] &&
+        (!('note' in data) || (data.note is string && data.note.size() <= 500)) &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp &&
+        data.updatedAt == request.time;
+    }
+
+    function isValidOperationalExpense(data) {
+      return data.keys().hasAll([
+          'ownerUid',
+          'branchId',
+          'category',
+          'title',
+          'amount',
+          'expenseDate',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'ownerUid',
+          'branchId',
+          'category',
+          'title',
+          'amount',
+          'expenseDate',
+          'note',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        data.ownerUid is string && data.ownerUid.size() >= 1 && data.ownerUid.size() <= 128 && data.ownerUid.matches('^[a-zA-Z0-9_\\-]+$') &&
+        data.ownerUid == request.auth.uid &&
+        data.branchId is string && data.branchId.size() >= 1 && data.branchId.size() <= 64 &&
+        data.category is string && data.category.size() >= 1 && data.category.size() <= 32 &&
+        data.category in ['gaji', 'sewa', 'listrik_air', 'operasional', 'packing', 'promosi', 'lainnya'] &&
+        data.title is string && data.title.size() >= 1 && data.title.size() <= 200 &&
+        data.amount is number && data.amount >= 0 &&
+        data.expenseDate is string && data.expenseDate.size() == 10 &&
+        (!('note' in data) || (data.note is string && data.note.size() <= 500)) &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp &&
+        data.updatedAt == request.time;
+    }
+
+    function isValidStoreBranch(data) {
+      return data.keys().hasAll([
+          'ownerUid',
+          'name',
+          'code',
+          'address',
+          'phone',
+          'isMain',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'ownerUid',
+          'name',
+          'code',
+          'address',
+          'phone',
+          'isMain',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        data.ownerUid is string && data.ownerUid.size() >= 1 && data.ownerUid.size() <= 128 && data.ownerUid.matches('^[a-zA-Z0-9_\\-]+$') &&
+        data.ownerUid == request.auth.uid &&
+        data.name is string && data.name.size() >= 1 && data.name.size() <= 120 &&
+        data.code is string && data.code.size() >= 1 && data.code.size() <= 40 &&
+        data.address is string && data.address.size() >= 1 && data.address.size() <= 300 &&
+        data.phone is string && data.phone.size() >= 1 && data.phone.size() <= 40 &&
+        data.isMain is bool &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp &&
+        data.updatedAt == request.time;
+    }
+
+    function isValidStoreStaff(data) {
+      return data.keys().hasAll([
+          'ownerUid',
+          'name',
+          'role',
+          'branchId',
+          'email',
+          'phone',
+          'active',
+          'pin',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'ownerUid',
+          'name',
+          'role',
+          'branchId',
+          'email',
+          'phone',
+          'active',
+          'pin',
+          'avatarUrl',
+          'createdAt',
+          'updatedAt'
+        ]) &&
+        data.ownerUid is string && data.ownerUid.size() >= 1 && data.ownerUid.size() <= 128 && data.ownerUid.matches('^[a-zA-Z0-9_\\-]+$') &&
+        data.ownerUid == request.auth.uid &&
+        data.name is string && data.name.size() >= 1 && data.name.size() <= 120 &&
+        data.role is string && data.role.size() >= 1 && data.role.size() <= 24 &&
+        data.role in ['Owner', 'Manager', 'Supervisor', 'Kasir'] &&
+        data.branchId is string && data.branchId.size() >= 1 && data.branchId.size() <= 64 &&
+        data.email is string && data.email.size() >= 1 && data.email.size() <= 160 &&
+        data.phone is string && data.phone.size() >= 1 && data.phone.size() <= 40 &&
+        data.active is bool &&
+        data.pin is string && data.pin.size() >= 4 && data.pin.size() <= 8 && data.pin.matches('^[0-9]{4,8}$') &&
+        (!('avatarUrl' in data) || (data.avatarUrl is string && data.avatarUrl.size() <= 50000)) &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp &&
+        data.updatedAt == request.time;
+    }
+
+    // 4. Collection Rules
+    match /admins/{adminId} {
+      allow get: if isSignedIn() && isValidId(adminId) && (adminId == request.auth.uid || isBootstrappedAdmin());
+      allow list: if isBootstrappedAdmin() && resource.data.ownerUid == request.auth.uid;
+      allow create: if isBootstrappedAdmin() && isValidId(adminId) && isValidAdminRecord(incoming()) && incoming().createdAt == request.time;
+      allow update, delete: if false;
+    }
+
+    match /store_profiles/{storeId} {
+      allow get: if isSignedIn() && isValidId(storeId) && (existing().ownerUid == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (resource.data.ownerUid == request.auth.uid || isBootstrappedAdmin());
+      allow create: if isSignedIn() && isValidId(storeId) && isValidStoreProfile(incoming()) && incoming().createdAt == request.time;
+      allow update: if isSignedIn() && isValidId(storeId) && isValidStoreProfile(incoming()) &&
+        incoming().ownerUid == existing().ownerUid &&
+        incoming().createdAt == existing().createdAt && (
+          isAdmin() ||
+          (existing().ownerUid == request.auth.uid &&
+            incoming().diff(existing()).affectedKeys().hasOnly([
+              'storeName',
+              'storeSubName',
+              'tagline',
+              'whatsappNumber',
+              'receiptFooter',
+              'driveFolderName',
+              'autoUploadPhotosToDrive',
+              'driveFolderId',
+              'connectedSpreadsheetId',
+              'connectedSpreadsheetUrl',
+              'connectedSpreadsheetTitle',
+              'lastSheetSyncAt',
+              'updatedAt'
+            ])
+          )
+        );
+      allow delete: if isSignedIn() && isValidId(storeId) && (existing().ownerUid == request.auth.uid || isAdmin());
+    }
+
+    match /catalog_products/{productId} {
+      allow get: if isSignedIn() && isValidId(productId) && (existing().ownerUid == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (resource.data.ownerUid == request.auth.uid || isBootstrappedAdmin());
+      allow create: if isSignedIn() && isValidId(productId) && isValidCatalogProduct(incoming()) && incoming().createdAt == request.time;
+      allow update: if isSignedIn() && isValidId(productId) && isValidCatalogProduct(incoming()) &&
+        incoming().ownerUid == existing().ownerUid &&
+        incoming().createdAt == existing().createdAt && (
+          isAdmin() ||
+          (existing().ownerUid == request.auth.uid &&
+            incoming().diff(existing()).affectedKeys().hasOnly([
+              'name',
+              'category',
+              'sku',
+              'barcode',
+              'costPrice',
+              'sellingPrice',
+              'stockSolo',
+              'stockYogya',
+              'stockSurabaya',
+              'minStockAlert',
+              'unit',
+              'image',
+              'updatedAt'
+            ])
+          )
+        );
+      allow delete: if isSignedIn() && isValidId(productId) && (existing().ownerUid == request.auth.uid || isAdmin());
+    }
+
+    match /pos_transactions/{transactionId} {
+      allow get: if isSignedIn() && isValidId(transactionId) && (existing().ownerUid == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (resource.data.ownerUid == request.auth.uid || isBootstrappedAdmin());
+      allow create: if isSignedIn() && isValidId(transactionId) && isValidPosTransaction(incoming()) && incoming().createdAt == request.time;
+      allow update: if isSignedIn() && isValidId(transactionId) && isValidPosTransaction(incoming()) &&
+        incoming().ownerUid == existing().ownerUid &&
+        incoming().createdAt == existing().createdAt &&
+        (existing().status != 'dibatalkan' || isAdmin()) && (
+          isAdmin() ||
+          (existing().ownerUid == request.auth.uid &&
+            incoming().diff(existing()).affectedKeys().hasOnly([
+              'status',
+              'note',
+              'updatedAt'
+            ])
+          )
+        );
+      allow delete: if isSignedIn() && isValidId(transactionId) && (existing().ownerUid == request.auth.uid || isAdmin());
+    }
+
+    match /operational_expenses/{expenseId} {
+      allow get: if isSignedIn() && isValidId(expenseId) && (existing().ownerUid == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (resource.data.ownerUid == request.auth.uid || isBootstrappedAdmin());
+      allow create: if isSignedIn() && isValidId(expenseId) && isValidOperationalExpense(incoming()) && incoming().createdAt == request.time;
+      allow update: if isSignedIn() && isValidId(expenseId) && isValidOperationalExpense(incoming()) &&
+        incoming().ownerUid == existing().ownerUid &&
+        incoming().createdAt == existing().createdAt && (
+          isAdmin() ||
+          (existing().ownerUid == request.auth.uid &&
+            incoming().diff(existing()).affectedKeys().hasOnly([
+              'branchId',
+              'category',
+              'title',
+              'amount',
+              'expenseDate',
+              'note',
+              'updatedAt'
+            ])
+          )
+        );
+      allow delete: if isSignedIn() && isValidId(expenseId) && (existing().ownerUid == request.auth.uid || isAdmin());
+    }
+
+    match /store_branches/{branchId} {
+      allow get: if isSignedIn() && isValidId(branchId) && (existing().ownerUid == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (resource.data.ownerUid == request.auth.uid || isBootstrappedAdmin());
+      allow create: if isSignedIn() && isValidId(branchId) && isValidStoreBranch(incoming()) && incoming().createdAt == request.time;
+      allow update: if isSignedIn() && isValidId(branchId) && isValidStoreBranch(incoming()) &&
+        incoming().ownerUid == existing().ownerUid &&
+        incoming().createdAt == existing().createdAt && (
+          isAdmin() ||
+          (existing().ownerUid == request.auth.uid &&
+            incoming().diff(existing()).affectedKeys().hasOnly([
+              'name',
+              'code',
+              'address',
+              'phone',
+              'isMain',
+              'updatedAt'
+            ])
+          )
+        );
+      allow delete: if isSignedIn() && isValidId(branchId) && (existing().ownerUid == request.auth.uid || isAdmin());
+    }
+
+    match /store_staff/{staffId} {
+      allow get: if isSignedIn() && isValidId(staffId) && (existing().ownerUid == request.auth.uid || isAdmin());
+      allow list: if isSignedIn() && (resource.data.ownerUid == request.auth.uid || isBootstrappedAdmin());
+      allow create: if isSignedIn() && isValidId(staffId) && isValidStoreStaff(incoming()) && incoming().createdAt == request.time;
+      allow update: if isSignedIn() && isValidId(staffId) && isValidStoreStaff(incoming()) &&
+        incoming().ownerUid == existing().ownerUid &&
+        incoming().createdAt == existing().createdAt && (
+          isAdmin() ||
+          (existing().ownerUid == request.auth.uid &&
+            incoming().diff(existing()).affectedKeys().hasOnly([
+              'name',
+              'role',
+              'branchId',
+              'email',
+              'phone',
+              'active',
+              'pin',
+              'avatarUrl',
+              'updatedAt'
+            ])
+          )
+        );
+      allow delete: if isSignedIn() && isValidId(staffId) && (existing().ownerUid == request.auth.uid || isAdmin());
+    }
+  }
+}

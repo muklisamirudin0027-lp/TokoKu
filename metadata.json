@@ -1,0 +1,6 @@
+{
+  "name": "POS & Kasir Toko Songkok, Korden, Karpet",
+  "description": "Aplikasi Kasir (POS) SaaS modern untuk toko songkok, korden, dan karpet dengan multi-cabang, manajemen staf, pencatatan transaksi harian/bulanan/tahunan, serta laporan laba rugi lengkap.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
